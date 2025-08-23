@@ -1,0 +1,51 @@
+interactions:
+- request:
+    body: ''
+    headers:
+      accept:
+      - '*/*'
+      accept-encoding:
+      - gzip, deflate
+      connection:
+      - keep-alive
+      host:
+      - www.googleapis.com
+    method: GET
+    uri: https://www.googleapis.com/discovery/v1/apis?name=people
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAC/6VSPWvDMBDd8yuE27FYOIEMgVI6BjKEQruUUhzp4h6xdUI6Owkh/72S7MaGQpcu
+        Ar97H3cPX2ZCZAc0OluJTKNX1IE732l0oJjceYOes4dIug3fwHkkEwVd0c+QofEBeA8fQlzS+7fv
+        OiiSNhEx0SyQrWE1mKaBKRsYRyPe/dohwYxcJ/428cXzdj0ONXjl0PKg2zrqMGCiVAq8F0wCzZ5c
+        U0aGKHfUsrCO9lhHktFCkeFSsc8nnj+XvYDnV1dH4y9m61dS9jvnFVFVQ2nR54oaeX+TSBc0T8Ml
+        j9MzMCTFOn+KDNCpWE69j8djXnkOq6rkik1ZgZc7F/ZEU8mwt24Vy+Ik+/zqs1hqm1tT3WKi62L+
+        T9fFfHAdTK9jNaTaBgynOjdoDtMkDR3UZMPtQz8pr29MjkVYB3twDuLvwa6FhF/D+zG7zr4BhqA4
+        mrsCAAA=
+    headers:
+      Alt-Svc:
+      - h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Sat, 23 Aug 2025 20:51:54 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      - X-Origin
+      - Referer
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-XSS-Protection:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
