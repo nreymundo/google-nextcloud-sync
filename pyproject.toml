@@ -1,0 +1,35 @@
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+force_single_line = false
+combine_as_imports = true
+known_first_party = ["g2nc"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+fix = true
+select = ["E","F","I","B","UP","PL","RUF"]
+ignore = ["E203"]  # black compatibility
+
+[tool.ruff.per-file-ignores]
+"tests/**" = ["PLR2004"]  # allow magic numbers in tests
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+plugins = []
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version = "0.1.0"
+version_files = ["src/g2nc/__init__.py:__version__"]

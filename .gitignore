@@ -1,0 +1,10 @@
+# .gitignore (repo root)
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/ build/
+.coverage coverage.xml
+.vscode/ .idea/
+data/ state.sqlite
+*.token.json

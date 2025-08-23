@@ -1,0 +1,3 @@
+src/**: ["area:core"]
+tests/**: ["area:tests"]
+docs/**: ["area:docs"]
