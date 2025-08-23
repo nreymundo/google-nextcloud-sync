@@ -1,3 +1,7 @@
+# Foreword
+
+This is me trying out some vibe coding to do some dumb task. None of the code, structure or docs in this repository has been written by me. Everything was done with VS Code + Kilo Code + GPT-5 in full _YOLO_ mode. The only exception being the the initial PRD document detailing what I wanted to achieve ([01-phase-01.md](./docs/01-phase-01.md)) and the Kilo rules ([01-project.md](.kilocode/rules/01-project.md)). 
+
 # g2nc — Google → Nextcloud Sync (Contacts & Calendar)
 
 One-way, incremental, idempotent sync from Google (People + Calendar) into Nextcloud (CardDAV + CalDAV). Google is the source of truth; updates and deletions propagate to Nextcloud. Designed to run locally and in Docker and to be scheduled via cron or systemd.
