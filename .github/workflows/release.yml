@@ -43,6 +43,7 @@ jobs:
             type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -52,6 +53,6 @@ jobs:
 
       - name: Verify pushed image
         run: |
-          echo "Image ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }} pushed successfully."
-          docker pull ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }}
-          docker run --rm ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }} --version
+          echo "Image ghcr.io/${{ github.repository_owner }}/g2nc@${{ steps.build.outputs.digest }} pushed successfully."
+          docker pull ghcr.io/${{ github.repository_owner }}/g2nc@${{ steps.build.outputs.digest }}
+          docker run --rm ghcr.io/${{ github.repository_owner }}/g2nc@${{ steps.build.outputs.digest }} g2nc --help
