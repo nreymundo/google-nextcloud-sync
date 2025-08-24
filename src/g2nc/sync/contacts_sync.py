@@ -16,6 +16,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+# Gracefully handle missing google client at import time for typing/runtime robustness
+try:  # pragma: no cover
+    from googleapiclient.errors import HttpError  # type: ignore[import-not-found]
+except Exception:  # pragma: no cover
+    class HttpError(Exception):  # type: ignore[no-redef]
+        pass
+
 from ..config import AppConfig
 from ..google.contacts import PeopleClient
 from ..mapping.contacts import person_to_vcard
@@ -24,6 +31,32 @@ from ..state import State
 from ..utils.hashing import hash_vcard
 
 log = logging.getLogger(__name__)
+
+
+def _is_expired_sync_token_error(exc: Exception) -> bool:
+    """Detect People API EXPIRED_SYNC_TOKEN errors.
+
+    The Google API client raises HttpError with content including:
+      reason: 'EXPIRED_SYNC_TOKEN'
+      or message: 'Sync token is expired. Clear local cache and retry call without the sync token.'
+    """
+    try:
+        if isinstance(exc, HttpError):
+            # Prefer structured content, fall back to string matching
+            msg = ""
+            try:
+                raw = getattr(exc, "content", b"")
+                if isinstance(raw, bytes):
+                    msg = raw.decode("utf-8", errors="ignore")
+                else:
+                    msg = str(raw)
+            except Exception:
+                msg = str(exc)
+            lm = msg.lower()
+            return ("expired_sync_token" in lm) or ("sync token is expired" in lm)
+    except Exception:
+        return False
+    return False
 
 
 @dataclass(frozen=True)
@@ -54,11 +87,31 @@ class ContactsSync:
         scope = "contacts"
         token: str | None = None if reset_token else self.state.get_token(scope)
 
-        iter_changes, next_token = self.people.iterate_changes(
-            sync_token=token,
-            page_size=self.cfg.sync.batch_size,
-            contact_group_ids=self.cfg.google.contact_groups,
-        )
+        # Handle EXPIRED_SYNC_TOKEN by clearing local token and retrying once (bounded/full resync for People API)
+        next_token: str | None = None
+        attempt = 0
+        while True:
+            try:
+                iter_changes, next_token = self.people.iterate_changes(
+                    sync_token=token,
+                    page_size=self.cfg.sync.batch_size,
+                    contact_group_ids=self.cfg.google.contact_groups,
+                )
+                break
+            except HttpError as exc:
+                if _is_expired_sync_token_error(exc) and attempt == 0:
+                    log.warning("people-sync-token-expired-resetting; clearing local token and retrying without sync_token")
+                    token = None
+                    attempt += 1
+                    if not dry_run:
+                        try:
+                            self.state.reset_token(scope)
+                        except Exception:
+                            # Non-fatal; continue with retry
+                            pass
+                    continue
+                # Any other API error (or repeated failure) is fatal to this pass
+                raise
 
         # Convert to mutable dataclass mimic
         fetched = created = updated = deleted = skipped = errors = 0
