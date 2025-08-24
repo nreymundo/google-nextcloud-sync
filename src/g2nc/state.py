@@ -102,8 +102,37 @@ class State:
         path = Path(db_path)
         if path.parent and not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Create database file if it doesn't exist
+        db_exists = path.exists()
+        
         # Increase default timeout to reduce 'database is locked' errors under contention.
         conn = sqlite3.connect(str(path), timeout=30.0)
+        
+        # Security: Set restrictive permissions on database file (owner read/write only)
+        # Apply to both new and existing databases for security
+        try:
+            import stat
+            import os
+            
+            # Check if we can write to the file before attempting chmod
+            if path.exists() and not os.access(path, os.W_OK):
+                import logging
+                log = logging.getLogger(__name__)
+                log.warning(
+                    "Database file %s is not writable by current user. "
+                    "This may cause operational issues. Please ensure proper file ownership.", path
+                )
+            else:
+                path.chmod(stat.S_IRUSR | stat.S_IWUSR)  # 600 permissions
+        except (OSError, AttributeError, PermissionError) as e:
+            # Best effort - some filesystems/OS may not support this
+            import logging
+            log = logging.getLogger(__name__)
+            log.warning(
+                "Could not set restrictive permissions on database file %s: %s. "
+                "Database will use default permissions.", path, e
+            )
         # Pragmas for reliability and reasonable performance with single-process access.
         # - WAL improves durability and read concurrency.
         # - synchronous=NORMAL balances safety with performance (acceptable for this use case).

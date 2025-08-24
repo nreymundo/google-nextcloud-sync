@@ -66,15 +66,50 @@ class FileLock:
 
     def acquire(self) -> None:
         try:
+            # First attempt to acquire lock
             self._fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
             os.write(self._fd, str(os.getpid()).encode("utf-8"))
             os.fsync(self._fd)
         except OSError as e:
             if e.errno == errno.EEXIST:
+                # Lock file exists - check if process is still running
+                if self._is_stale_lock():
+                    log.warning("Removing stale lock file at %s", self.path)
+                    try:
+                        os.unlink(self.path)
+                        # Retry acquisition after removing stale lock
+                        self._fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+                        os.write(self._fd, str(os.getpid()).encode("utf-8"))
+                        os.fsync(self._fd)
+                        return
+                    except OSError:
+                        # Another process might have created the lock in the meantime
+                        pass
+                
                 raise RuntimeError(
                     f"Another instance is running (lock exists at {self.path})"
                 ) from e
             raise
+
+    def _is_stale_lock(self) -> bool:
+        """Check if the lock file contains a PID of a process that no longer exists."""
+        try:
+            with open(self.path, encoding="utf-8") as f:
+                pid_str = f.read().strip()
+                if not pid_str.isdigit():
+                    # Invalid PID format, consider it stale
+                    return True
+                
+                pid = int(pid_str)
+                # Check if process exists
+                try:
+                    os.kill(pid, 0)  # Signal 0 doesn't kill, just checks existence
+                    return False  # Process exists, lock is valid
+                except OSError:
+                    return True  # Process doesn't exist, lock is stale
+        except (FileNotFoundError, PermissionError, ValueError):
+            # If we can't read the lock file or parse PID, consider it stale
+            return True
 
     def release(self) -> None:
         try:

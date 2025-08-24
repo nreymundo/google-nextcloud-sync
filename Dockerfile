@@ -24,12 +24,17 @@ RUN pip install --upgrade pip && pip install --no-cache-dir -e .[dev]
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Non-root user (optional)
-# RUN useradd -m runner && chown -R runner:runner /app
-# USER runner
+# Security: Create non-root user for running the application
+RUN useradd -m -u 1000 -s /bin/bash runner && \
+    chown -R runner:runner /app && \
+    mkdir -p /data && \
+    chown runner:runner /data
 
 # Data directory is expected to be bind-mounted at runtime
 VOLUME ["/data"]
+
+# Switch to non-root user
+USER runner
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
 CMD ["g2nc", "sync", "--config", "/data/config.yaml"]

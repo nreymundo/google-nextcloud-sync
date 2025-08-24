@@ -80,7 +80,9 @@ class CalDAVClient:
 
         TODO: Implement CalDAV calendar-query REPORT with UID filter.
         """
-        # Build CalDAV calendar-query by UID
+        # Build CalDAV calendar-query by UID - escape XML to prevent injection
+        import xml.sax.saxutils
+        escaped_uid = xml.sax.saxutils.escape(uid)
         body = f"""<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
@@ -90,7 +92,7 @@ class CalDAVClient:
     <c:comp-filter name="VCALENDAR">
       <c:comp-filter name="VEVENT">
         <c:prop-filter name="UID">
-          <c:text-match collation="i;octet">{uid}</c:text-match>
+          <c:text-match collation="i;octet">{escaped_uid}</c:text-match>
         </c:prop-filter>
       </c:comp-filter>
     </c:comp-filter>

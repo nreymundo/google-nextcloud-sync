@@ -11,12 +11,16 @@ Notes:
 
 from __future__ import annotations
 
+import logging
+import os
 import random
 from collections.abc import Iterable, Mapping, MutableMapping
 from dataclasses import dataclass
 from time import sleep
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 __all__ = [
     "RetryConfig",
@@ -55,6 +59,20 @@ def create_client(
     - Keep-alive connections are pooled; conservative defaults avoid server overload.
     - Adjust via the `limits` parameter if your deployment requires more concurrency.
     """
+    # Security: Prevent SSL verification bypass in production environments
+    if verify is False and os.getenv("G2NC_ENVIRONMENT") == "production":
+        raise ValueError(
+            "SSL certificate verification cannot be disabled in production environment. "
+            "Set G2NC_ENVIRONMENT to 'development' or 'test' to allow insecure connections."
+        )
+    
+    # Log warning when SSL verification is disabled
+    if verify is False:
+        log.warning(
+            "SSL certificate verification is DISABLED. This should only be used in development/testing. "
+            "Production deployments must use verified SSL connections."
+        )
+    
     base_headers: MutableMapping[str, str] = {"User-Agent": _user_agent()}
     if headers:
         base_headers.update(headers)

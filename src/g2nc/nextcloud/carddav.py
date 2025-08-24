@@ -84,7 +84,9 @@ class CardDAVClient:
 
         TODO: Implement CardDAV addressbook-query REPORT with UID filter.
         """
-        # Build CardDAV addressbook-query by UID
+        # Build CardDAV addressbook-query by UID - escape XML to prevent injection
+        import xml.sax.saxutils
+        escaped_uid = xml.sax.saxutils.escape(uid)
         body = f"""<?xml version="1.0" encoding="utf-8"?>
 <card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">
   <d:prop>
@@ -92,7 +94,7 @@ class CardDAVClient:
   </d:prop>
   <card:filter>
     <card:prop-filter name="UID">
-      <card:text-match collation="i;octet">{uid}</card:text-match>
+      <card:text-match collation="i;octet">{escaped_uid}</card:text-match>
     </card:prop-filter>
   </card:filter>
 </card:addressbook-query>"""
