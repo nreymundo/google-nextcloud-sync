@@ -1,3 +1,11 @@
-src/**: ["area:core"]
-tests/**: ["area:tests"]
-docs/**: ["area:docs"]
+"area:core":
+  - changed-files:
+      - any-glob-to-any-file: "src/**"
+
+"area:tests":
+  - changed-files:
+      - any-glob-to-any-file: "tests/**"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
