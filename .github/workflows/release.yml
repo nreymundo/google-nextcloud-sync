@@ -2,8 +2,10 @@ name: Release (Docker)
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
@@ -37,11 +39,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/g2nc
           tags: |
-            type=ref,event=tag
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest
+            type=sha,format=short,enable=true,priority=100
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -50,3 +49,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Verify pushed image
+        run: |
+          echo "Image ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }} pushed successfully."
+          docker pull ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }}
+          docker run --rm ghcr.io/${{ github.repository_owner }}/g2nc:${{ steps.meta.outputs.sha }} --version
