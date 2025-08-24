@@ -1,6 +1,6 @@
 # Foreword
 
-This is me trying out some vibe coding to do some dumb task. None of the code, structure or docs in this repository has been written by me. Everything was done with VS Code + Kilo Code + GPT-5 in full _YOLO_ mode. The only exception being the the initial PRD document detailing what I wanted to achieve ([01-phase-01.md](./docs/01-phase-01.md)) and the Kilo rules ([01-project.md](.kilocode/rules/01-project.md)). 
+This is me trying out some vibe coding to do some dumb task. None of the code, structure or docs in this repository has been written by me. Everything was done with VS Code + Kilo Code + GPT-5 in full _YOLO_ mode. The only exception being the the initial PRD document detailing what I wanted to achieve ([01-phase-01.md](./docs/01-phase-01.md)) and the Kilo rules ([01-project.md](.kilocode/rules/01-project.md)).
 
 # g2nc — Google → Nextcloud Sync (Contacts & Calendar)
 
@@ -27,7 +27,9 @@ Status: Phase 01 scaffold implemented per PRD. Engines, orchestrator, Google cli
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
-pre-commit install
+# Install both hooks
+pre-commit install --hook-type pre-commit
+pre-commit install --hook-type pre-push
 ```
 
 Run quality gates:
@@ -35,6 +37,28 @@ Run quality gates:
 ruff check .
 mypy src
 pytest -q --cov=src
+```
+
+### Git hooks (pre-commit + pre-push)
+
+- This repo ships with a pre-commit configuration that auto-fixes formatting and lint on commit, and blocks pushes if quality gates fail.
+- On every commit:
+  - black formats Python (line-length=100)
+  - ruff lints and applies autofixes (ruff --fix)
+  - basic sanity checks (trailing whitespace, EOF newline, YAML/TOML syntax, merge conflicts)
+- On every push:
+  - ruff check .
+  - black --check .
+  - mypy src
+  - pytest -q
+
+Useful commands:
+```bash
+# Run hooks on all files
+pre-commit run --all-files
+
+# Update hook versions (optional)
+pre-commit autoupdate
 ```
 
 ## Quick Start (local)
