@@ -220,7 +220,7 @@ def read_yaml_config(path: Path | None) -> dict[str, Any]:
     if not path:
         return {}
     p = Path(path).resolve()
-    
+
     # Security: Validate path to prevent path traversal attacks
     # Allow common config locations but prevent access to sensitive system files
     allowed_prefixes = [
@@ -232,7 +232,7 @@ def read_yaml_config(path: Path | None) -> dict[str, Any]:
         Path("/tmp"),  # Temporary directory (for tests)
         Path("/var/tmp"),  # Additional temp directory
     ]
-    
+
     # Check if path is within allowed locations
     path_allowed = False
     for prefix in allowed_prefixes:
@@ -242,13 +242,13 @@ def read_yaml_config(path: Path | None) -> dict[str, Any]:
             break
         except ValueError:
             continue
-    
+
     if not path_allowed:
         raise ValueError(
             f"Configuration file path '{p}' is outside allowed directories. "
             f"Allowed prefixes: {[str(prefix) for prefix in allowed_prefixes]}"
         )
-    
+
     if not p.exists():
         return {}
     with p.open("r", encoding="utf-8") as fh:

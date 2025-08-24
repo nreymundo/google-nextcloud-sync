@@ -107,10 +107,8 @@ def _save_credentials(token_store: str, creds: Credentials) -> None:
 
 def _interactive_flow(client_config: dict[str, Any], scopes: Sequence[str]) -> Credentials:
     """Run installed app flow with local server for user consent (interactive)."""
-    try:
-        from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore[import-not-found]
-    except Exception as exc:  # pragma: no cover
-        raise RuntimeError("google-auth-oauthlib is required for interactive OAuth flow.") from exc
+    from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore[import-not-found]
+
     flow = InstalledAppFlow.from_client_config(client_config, scopes=list(scopes))  # type: ignore[no-untyped-call]
     # Use a random free port; restrict to localhost
     return flow.run_local_server(  # type: ignore[no-untyped-call]
@@ -120,10 +118,7 @@ def _interactive_flow(client_config: dict[str, Any], scopes: Sequence[str]) -> C
 
 def _refresh_if_needed(creds: Credentials) -> None:
     """Refresh access token if expired and refresh token is present."""
-    try:
-        from google.auth.transport.requests import Request  # type: ignore[import-not-found]
-    except Exception as exc:  # pragma: no cover
-        raise RuntimeError("google-auth is required to refresh tokens.") from exc
+    from google.auth.transport.requests import Request  # type: ignore[import-not-found]
 
     if getattr(creds, "expired", False) and getattr(creds, "refresh_token", None):
         creds.refresh(Request())  # type: ignore[no-untyped-call]

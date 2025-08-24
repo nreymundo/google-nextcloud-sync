@@ -71,3 +71,6 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
+
+# Codacy
+.codacy/

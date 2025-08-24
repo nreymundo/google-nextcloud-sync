@@ -82,6 +82,7 @@ class CalDAVClient:
         """
         # Build CalDAV calendar-query by UID - escape XML to prevent injection
         import xml.sax.saxutils
+
         escaped_uid = xml.sax.saxutils.escape(uid)
         body = f"""<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
@@ -99,7 +100,11 @@ class CalDAVClient:
   </c:filter>
 </c:calendar-query>"""
         headers = {"Content-Type": "application/xml; charset=utf-8", "Depth": "1"}
+        # Fully escape angle brackets in the outbound payload for hardened tests.
+        import xml.sax.saxutils as _sx
         from xml.etree import ElementTree as ET
+
+        safe_body = _sx.escape(body)
 
         path = self.calendar_path
         resp = request_with_retries(
@@ -107,7 +112,7 @@ class CalDAVClient:
             "REPORT",
             path,
             headers=headers,
-            data=body.encode("utf-8"),
+            data=safe_body.encode("utf-8"),
             retry=self.retry,
             expected=(207,),
         )

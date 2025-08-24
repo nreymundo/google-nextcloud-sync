@@ -71,9 +71,21 @@ class State:
 
     def __init__(self, db_path: str) -> None:
         self.db_path = db_path
+        # Determine writability before initializing schema (handles read-only files in tests)
+        try:
+            import os as _os
+
+            _path_obj = Path(db_path)
+            self._readonly = _path_obj.exists() and not _os.access(str(_path_obj), _os.W_OK)
+        except Exception:
+            self._readonly = False
+
         self._conn = self._connect(db_path)
         self._conn.row_factory = sqlite3.Row
-        self._init_schema()
+
+        # Only attempt to create/upgrade schema when file is writable
+        if not self._readonly:
+            self._init_schema()
 
     # Context manager support to ensure connections are closed deterministically
     def __enter__(self) -> State:
@@ -102,36 +114,38 @@ class State:
         path = Path(db_path)
         if path.parent and not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Create database file if it doesn't exist
-        db_exists = path.exists()
-        
+
         # Increase default timeout to reduce 'database is locked' errors under contention.
         conn = sqlite3.connect(str(path), timeout=30.0)
-        
+
         # Security: Set restrictive permissions on database file (owner read/write only)
         # Apply to both new and existing databases for security
         try:
-            import stat
             import os
-            
+            import stat
+
             # Check if we can write to the file before attempting chmod
             if path.exists() and not os.access(path, os.W_OK):
                 import logging
+
                 log = logging.getLogger(__name__)
                 log.warning(
                     "Database file %s is not writable by current user. "
-                    "This may cause operational issues. Please ensure proper file ownership.", path
+                    "This may cause operational issues. Please ensure proper file ownership.",
+                    path,
                 )
             else:
                 path.chmod(stat.S_IRUSR | stat.S_IWUSR)  # 600 permissions
-        except (OSError, AttributeError, PermissionError) as e:
+        except (OSError, AttributeError, PermissionError, TypeError) as e:
             # Best effort - some filesystems/OS may not support this
             import logging
+
             log = logging.getLogger(__name__)
             log.warning(
                 "Could not set restrictive permissions on database file %s: %s. "
-                "Database will use default permissions.", path, e
+                "Database will use default permissions.",
+                path,
+                e,
             )
         # Pragmas for reliability and reasonable performance with single-process access.
         # - WAL improves durability and read concurrency.
@@ -139,11 +153,29 @@ class State:
         # - temp_store=MEMORY reduces disk I/O for temp structures.
         # - busy_timeout helps during brief lock contention windows.
         # - foreign_keys enables referential integrity (future-proofing).
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA synchronous=NORMAL;")
-        conn.execute("PRAGMA temp_store=MEMORY;")
-        conn.execute("PRAGMA busy_timeout=5000;")
-        conn.execute("PRAGMA foreign_keys = ON;")
+        # Apply PRAGMAs only when file is writable to avoid noisy warnings in read-only scenarios
+        do_pragmas = True
+        try:
+            import os as _os
+
+            if path.exists() and not _os.access(str(path), _os.W_OK):
+                do_pragmas = False
+        except Exception:
+            do_pragmas = True
+
+        if do_pragmas:
+            try:
+                conn.execute("PRAGMA journal_mode=WAL;")
+                conn.execute("PRAGMA synchronous=NORMAL;")
+                conn.execute("PRAGMA temp_store=MEMORY;")
+                conn.execute("PRAGMA busy_timeout=5000;")
+                conn.execute("PRAGMA foreign_keys = ON;")
+            except sqlite3.OperationalError as e:
+                # If database file is read-only or on restricted FS, skip PRAGMA writes
+                import logging
+
+                log = logging.getLogger(__name__)
+                log.warning("SQLite PRAGMA initialization skipped for %s: %s", path, e)
         return conn
 
     def close(self) -> None:

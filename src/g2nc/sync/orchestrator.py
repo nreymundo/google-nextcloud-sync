@@ -85,7 +85,7 @@ class FileLock:
                     except OSError:
                         # Another process might have created the lock in the meantime
                         pass
-                
+
                 raise RuntimeError(
                     f"Another instance is running (lock exists at {self.path})"
                 ) from e
@@ -99,7 +99,7 @@ class FileLock:
                 if not pid_str.isdigit():
                     # Invalid PID format, consider it stale
                     return True
-                
+
                 pid = int(pid_str)
                 # Check if process exists
                 try:

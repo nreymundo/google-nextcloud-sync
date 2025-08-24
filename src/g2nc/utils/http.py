@@ -14,9 +14,9 @@ from __future__ import annotations
 import logging
 import os
 import random
+import time
 from collections.abc import Iterable, Mapping, MutableMapping
 from dataclasses import dataclass
-from time import sleep
 
 import httpx
 
@@ -65,14 +65,14 @@ def create_client(
             "SSL certificate verification cannot be disabled in production environment. "
             "Set G2NC_ENVIRONMENT to 'development' or 'test' to allow insecure connections."
         )
-    
+
     # Log warning when SSL verification is disabled
     if verify is False:
         log.warning(
             "SSL certificate verification is DISABLED. This should only be used in development/testing. "
             "Production deployments must use verified SSL connections."
         )
-    
+
     base_headers: MutableMapping[str, str] = {"User-Agent": _user_agent()}
     if headers:
         base_headers.update(headers)
@@ -121,7 +121,7 @@ def _sleep_backoff(attempt: int, retry: RetryConfig) -> None:
     jitter = base * retry.jitter_frac
     delay = base + random.uniform(-jitter, jitter)
     if delay > 0:
-        sleep(delay)
+        time.sleep(delay)
 
 
 def request_with_retries(
