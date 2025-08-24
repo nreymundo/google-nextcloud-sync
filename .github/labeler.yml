@@ -12,3 +12,9 @@ docs:
   - changed-files:
       - any-glob-to-any-file:
           - 'docs/**'
+          - 'README.md'
+
+ai-rules:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.kilocode/**'
