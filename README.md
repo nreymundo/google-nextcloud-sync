@@ -91,7 +91,17 @@ Subsequent runs are headless.
 
 ## Docker
 
-Build and run:
+Use the hosted image (recommended):
+
+```bash
+docker pull ghcr.io/nreymundo/g2nc:latest
+docker run --rm \
+  -v "$PWD/data:/data" \
+  -e NEXTCLOUD_APP_PASSWORD="$NEXTCLOUD_APP_PASSWORD" \
+  ghcr.io/nreymundo/g2nc:latest g2nc sync --config /data/config.yaml
+```
+
+Build locally (optional):
 
 ```bash
 docker build -t g2nc:dev .
@@ -106,7 +116,7 @@ Compose example:
 ```yaml
 services:
   g2nc:
-    image: ghcr.io/yourorg/g2nc:latest
+    image: ghcr.io/nreymundo/g2nc:latest
     restart: unless-stopped
     environment:
       NEXTCLOUD_APP_PASSWORD: ${NEXTCLOUD_APP_PASSWORD}
@@ -121,7 +131,7 @@ Cron (host):
 ```
 # Every 6 hours
 0 */6 * * * /usr/bin/docker run --rm -v /opt/g2nc:/data \
-  -e NEXTCLOUD_APP_PASSWORD=*** ghcr.io/yourorg/g2nc:latest \
+  -e NEXTCLOUD_APP_PASSWORD=*** ghcr.io/nreymundo/g2nc:latest \
   g2nc sync --config /data/config.yaml >> /var/log/g2nc.log 2>&1
 ```
 
