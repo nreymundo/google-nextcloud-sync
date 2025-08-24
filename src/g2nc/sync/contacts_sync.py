@@ -20,8 +20,10 @@ from dataclasses import dataclass
 try:  # pragma: no cover
     from googleapiclient.errors import HttpError  # type: ignore[import-not-found]
 except Exception:  # pragma: no cover
+
     class HttpError(Exception):  # type: ignore[no-redef]
         pass
+
 
 from ..config import AppConfig
 from ..google.contacts import PeopleClient
@@ -100,7 +102,9 @@ class ContactsSync:
                 break
             except HttpError as exc:
                 if _is_expired_sync_token_error(exc) and attempt == 0:
-                    log.warning("people-sync-token-expired-resetting; clearing local token and retrying without sync_token")
+                    log.warning(
+                        "people-sync-token-expired-resetting; clearing local token and retrying without sync_token"
+                    )
                     token = None
                     attempt += 1
                     if not dry_run:

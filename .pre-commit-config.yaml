@@ -1,0 +1,33 @@
+default_language_version:
+  python: python3
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-toml
+    - id: check-merge-conflict
+
+- repo: https://github.com/psf/black
+  rev: 25.1.0
+  hooks:
+    - id: black
+      args: ["--line-length=100"]
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.12.10
+  hooks:
+    - id: ruff
+      args: ["--fix"]
+
+- repo: local
+  hooks:
+    - id: pre-push-quality-gates
+      name: pre-push quality gates (ruff, black --check, mypy, pytest)
+      entry: bash -lc 'source .venv/bin/activate && ruff check . && black --check . && mypy src && pytest -q'
+      language: system
+      pass_filenames: false
+      stages: [pre-push]

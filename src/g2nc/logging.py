@@ -199,7 +199,9 @@ class JsonFormatter(logging.Formatter):
         # Attach exception info for log.exception / exc_info=True records
         if getattr(record, "exc_info", None):
             try:
-                exc_type = record.exc_info[0].__name__ if record.exc_info and record.exc_info[0] else None
+                exc_type = (
+                    record.exc_info[0].__name__ if record.exc_info and record.exc_info[0] else None
+                )
                 base["exc_type"] = exc_type
                 tb = "".join(traceback.format_exception(*record.exc_info))
                 # Limit size to avoid overly large log lines
