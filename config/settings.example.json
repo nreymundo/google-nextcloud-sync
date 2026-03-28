@@ -1,0 +1,32 @@
+{
+  "sqlite_path": "data/state.sqlite",
+  "lock_file": "data/g2nc.lock",
+  "logging": {
+    "level": "INFO",
+    "json": true
+  },
+  "google": {
+    "credentials_file": "config/google_client_credentials.json",
+    "token_file": "config/google_token.json",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.readonly"
+    ]
+  },
+  "nextcloud": {
+    "username": "nextcloud-user",
+    "app_password": "use-env-instead",
+    "timeout_seconds": 30
+  },
+  "mappings": [
+    {
+      "name": "primary-to-work",
+      "google_calendar_id": "primary",
+      "nextcloud_calendar_url": "https://nextcloud.example/remote.php/dav/calendars/nextcloud-user/work/"
+    },
+    {
+      "name": "family-to-family",
+      "google_calendar_id": "family_calendar_id@group.calendar.google.com",
+      "nextcloud_calendar_url": "https://nextcloud.example/remote.php/dav/calendars/nextcloud-user/family/"
+    }
+  ]
+}

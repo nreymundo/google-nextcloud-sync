@@ -42,6 +42,9 @@ htmlcov/
 data/
 state.sqlite
 config.yaml
+config/settings.json
+config/google_client_credentials.json
+config/google_token.json
 *.token.json
 token.json
 credentials.json
