@@ -1,5 +1,7 @@
 # g2nc
 
+> **Important:** this project will not meet the intended unattended long-term Google sync behavior on a personal Google account unless you complete a **production OAuth app setup** with Google's required verification flow for the needed sensitive scopes. Testing-mode OAuth is not a durable substitute.
+
 `g2nc` is a Python MVP for one-way Google Calendar to Nextcloud Calendar sync.
 
 ## Scope
