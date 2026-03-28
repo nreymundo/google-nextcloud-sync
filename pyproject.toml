@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "g2nc"
+version = "0.1.0"
+description = "One-way Google Calendar to Nextcloud Calendar sync"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "g2nc contributors" }]
+license = "MIT"
+dependencies = [
+  "google-api-python-client>=2.170.0",
+  "google-auth>=2.40.0",
+  "google-auth-oauthlib>=1.2.2",
+  "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "black>=25.1.0",
+  "mypy>=1.11.0",
+  "pytest>=8.3.0",
+  "pytest-cov>=5.0.0",
+  "ruff>=0.12.10",
+  "types-requests>=2.32.0.20250602",
+]
+
+[project.scripts]
+g2nc = "g2nc.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B", "UP", "N", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+pretty = true
+mypy_path = ["src"]
+packages = ["g2nc"]
+
+[[tool.mypy.overrides]]
+module = ["googleapiclient.*", "google_auth_oauthlib.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["g2nc.google.client"]
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["g2nc.google.oauth"]
+disable_error_code = ["import-untyped"]
